@@ -3,7 +3,11 @@
 #include <linux/kernel.h>
 #include <linux/version.h>
 #include <linux/kallsyms.h>
+#ifdef ARM64
+#include <asm/mmu.h>
+#else
 #include <asm/mmu_writeable.h>
+#endif
 
 #define DRIVER_AUTHOR "flar2 / MohammadAG"
 #define DRIVER_DESCRIPTION "Defeat system write protect"
@@ -18,8 +22,13 @@ static int sony_ric_enabled(void)
 
 inline void arm_write_hook ( void *target, char *code )
 {
+#ifdef ARM64
+    u32 *target_arm = (u32 *)target;
+    u32 *code_arm = (u32 *)code;
+#else
     unsigned long *target_arm = (unsigned long *)target;
     unsigned long *code_arm = (unsigned long *)code;
+#endif
 
     mem_text_write_kernel_word(target_arm, *code_arm);
     mem_text_write_kernel_word(target_arm + 1, *(code_arm + 1));
